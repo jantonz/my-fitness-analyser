@@ -8,9 +8,6 @@ m_c.st.set_page_config(
     )
 
 
-with open('style.css') as f:
-   m_c.st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
 if __name__ == '__main__': 
     with m_c.st.container():
 
