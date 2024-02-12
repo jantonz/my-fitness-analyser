@@ -12,6 +12,8 @@ import altair as alt
 import datetime as dt
 import random
 from itertools import product
+import base64
+
 
 # These columns are the minimum required for this script to function.
 minimum_columns_from_excel_extract = ['Activity Date','Activity Type','Elapsed Time', 'Moving Time', 'Distance', 'Elevation Gain']
@@ -273,10 +275,8 @@ def create_average_speed_line_chart(df, units):
                 start_date = df['Activity Date'].dt.date.min()
                 end_date = df['Activity Date'].dt.date.max()
                 date_range_df = pd.DataFrame({
-                                        'Date': pd.date_range(start=start_date, end=end_date, freq='D')})
-             
+                                        'Date': pd.date_range(start=start_date, end=end_date, freq='D')})     
                 date_range_df['Date'] = date_range_df['Date'].dt.strftime('%Y-%m-%d')
-
                 # Create a list of activity types
                 activity_types = df['Activity Type'].unique()
                 # Create copy of our filtered dataframe

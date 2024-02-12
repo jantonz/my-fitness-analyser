@@ -39,7 +39,14 @@ if __name__ == '__main__':
     if uploaded_file is None:
         m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
         m_c.st.write("---")
-        m_c.st.image('misc/screenshot_of_dashboard.png')
+        file_ = open("misc/dashboard-demo.gif", "rb")
+        contents = file_.read()
+        data_url = m_c.base64.b64encode(contents).decode("utf-8")
+        file_.close()
+        m_c.st.markdown(
+            f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" style="width: 900px; height: 500px;">',
+            unsafe_allow_html=True,
+        )
         m_c.st.stop()
     else:
             df = m_c.load_data(uploaded_file,units)
@@ -106,7 +113,6 @@ if __name__ == '__main__':
                 m_c.st.subheader(f"{activity_type}")
                 if i == 1 or i == 3:
                     m_c.create_metrics(totals_df, merged_df, activity_type, (i*i), (i*i)+1, (i*i)+2, (i*i)+3, units)
-                    # st.write("---")
                 if i == 2 or i == 4:
                     m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
                     # 
