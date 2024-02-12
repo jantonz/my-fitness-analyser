@@ -19,7 +19,7 @@ if __name__ == '__main__':
         m_c.st.subheader('''An Interactive View of your Fitness Data''')
 
     with m_c.st.sidebar:
-        m_c.st.write("🌐 [LinkedIn](https://www.linkedin.com/in/matthew-helingoe-55371791/)  |  🚧 [GitHub](https://github.com/shoulda-woulda/fitness_dashboard_app)")
+        m_c.st.write("🌐 [Contact](https://www.linkedin.com/in/matthew-helingoe-55371791/)  |  🚧 [GitHub](https://github.com/shoulda-woulda/fitness_dashboard_app)")
         m_c.st.caption("_This dashboard is agnostic of specific fitness tracking providers and exclusively retains your data in a cache that is cleared at the conclusion of your session._")
         m_c.st.caption("_Optimal performance is achieved on a desktop platform._")
         m_c.st.write("---")
