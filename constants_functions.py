@@ -13,7 +13,6 @@ import datetime as dt
 import random
 from itertools import product
 import base64
-import utils as utl
 
 
 # These columns are the minimum required for this script to function.
