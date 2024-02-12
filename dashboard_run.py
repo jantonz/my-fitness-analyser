@@ -14,13 +14,14 @@ with open('style.css') as f:
 if __name__ == '__main__': 
     with m_c.st.container():
 
-        m_c.st.header("🅐🅣🅗🅛🅔🅣🅔🅘🅠")
+        m_c.st.header("🅰🆃🅷🅻🅴🆃🅴 🅸🆀")
 
-        m_c.st.subheader('''An Interactive View of your Fitness Data\n_v1.0_''')
+        m_c.st.subheader('''An Interactive View of your Fitness Data''')
 
     with m_c.st.sidebar:
         m_c.st.write("🌐 [LinkedIn](https://www.linkedin.com/in/matthew-helingoe-55371791/)  |  🚧 [GitHub](https://github.com/shoulda-woulda/fitness_dashboard_app)")
         m_c.st.caption("_This dashboard is agnostic of specific fitness tracking providers and exclusively retains your data in a cache that is cleared at the conclusion of your session._")
+        m_c.st.caption("_Optimal performance is achieved on a desktop platform._")
         m_c.st.write("---")
         m_c.st.header("How to upload your data")
         m_c.st.caption("Many fitness tracking providers enable users to download their activity data.")
@@ -36,7 +37,8 @@ if __name__ == '__main__':
         uploaded_file = m_c.st.sidebar.file_uploader("""Upload your activities .csv file""", type=["csv"])
 
     if uploaded_file is None:
-        m_c.st.info("Upload your own data on the side menu.")
+        m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
+        m_c.st.write("---")
         m_c.st.image('misc/screenshot_of_dashboard.png')
         m_c.st.stop()
     else:
@@ -47,7 +49,7 @@ if __name__ == '__main__':
                 m_c.st.caption("You can filter your activity data above or use the options on the dashboard.")
                 m_c.st.caption("The large figures represent a breakdown of your total activity metrics based on the applied filters.")
                 m_c.st.caption("Use the dropdown to filter the graphs by activity type.")
-                m_c.st.caption("The graphs are interactive, allowing you to zoom in and out. Hover over data points for additional details. Double-click to reset the graph to its previous state.")
+                m_c.st.caption("__Desktop only__ The graphs are interactive, allowing you to zoom in and out. Hover over data points for additional details. Double-click to reset the graph to its previous state.")
                 m_c.st.caption("You can view and download your data in the table at the bottom of the page.")
 
     if filtered_df is None:
@@ -95,6 +97,8 @@ if __name__ == '__main__':
         totals_df = totals_df.sort_values(by='Activity Type')
         merged_df = merged_df.sort_values(by='Activity Type')
         # Enumerate the unique values in Activity Type column and create metric elements for each activity type
+        caption_text = "⬆️⬇️ Percentage changes calculated between the selected date range and an equivalent duration preceding [" + str(number_of_days_on_slider) + " days between  " + str(cutoff_date) + " & " +  str(min_date_on_slider) + "]. A nan value means no previous data for that activity type."
+        m_c.st.info(caption_text)
         caption_text = "Totals and Percentage Changes"
         m_c.st.subheader(caption_text)
         for i, activity_type in enumerate(list(totals_df['Activity Type'].unique()), start=1):
@@ -107,9 +111,7 @@ if __name__ == '__main__':
                     m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
                     # 
         
-        caption_text = "⬆️⬇️ Percentage changes calculated between the selected date range and an equivalent duration preceding [" + str(number_of_days_on_slider) + " days between  " + str(cutoff_date) + " & " +  str(min_date_on_slider) + "]. A nan value means no previous data for that activity type."
         activity_types_as_list = list(slider_filtered_df['Activity Type'].unique())
-        m_c.st.info(caption_text)
         activity_selection = m_c.st.multiselect(
             "Select activities to display on charts below",
             options=activity_types_as_list,

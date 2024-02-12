@@ -13,13 +13,14 @@ import datetime as dt
 import random
 from itertools import product
 
+# These columns are the minimum required for this script to function.
+minimum_columns_from_excel_extract = ['Activity Date','Activity Type','Elapsed Time', 'Moving Time', 'Distance', 'Elevation Gain']
+# These columns represent the full suite of possible columns to include.
+full_columns_from_excel_extract = ['Activity ID', 'Activity Date','Activity Name','Activity Type','Activity Description','Elapsed Time', 'Moving Time', 'Distance', 'Elevation Gain', 'Elevation Loss', 'Elevation Low', 'Elevation High']
 
-minimum_columns_from_excel_extract = ['Activity Date','Activity Type','Elapsed Time.1', 'Moving Time', 'Distance.1', 'Elevation Gain']
-full_columns_from_excel_extract = ['Activity ID', 'Activity Date','Activity Name','Activity Type','Activity Description','Elapsed Time.1', 'Moving Time', 'Distance.1', 'Elevation Gain', 'Elevation Loss', 'Elevation Low', 'Elevation High']
-
-column_mapping = {'Elapsed Time.1': 'Elapsed Time (hours)',
+column_mapping = {'Elapsed Time': 'Elapsed Time (hours)',
                   'Moving Time': 'Moving Time (hours)',
-                  'Distance.1': 'Distance'}
+                  'Distance': 'Distance'}
 
 elevation_columns = ['Elevation Gain', 'Elevation Loss', 'Elevation Low', 'Elevation High']
 
@@ -42,9 +43,22 @@ metre_mile_conv = 0.0006213712
 final_order_of_columns_for_table_display = ['Activity ID', 'Activity Name', 'Activity Type', 'Activity Date', 'Elapsed Time (hours)', 'Moving Time (hours)', 'Ratio of Move to Total Time', 'Distance', 'Average Speed', 'Elevation Gain', 'Elevation Loss', 'Elevation Low', 'Elevation High']
 
 
+def remove_and_rename(df, target_column_name, column_to_remove):
+    """Manages instances where there are duplicate column names"""
+    if target_column_name in df.columns:
+        df = df.drop(column_to_remove, axis=1, errors='ignore')
+        df = df.rename(columns={target_column_name: column_to_remove})
+    else:
+         pass
+    return df
+
 @st.cache_data
 def load_data(file, units):
+    """Loads, cleans and transforms input .csv data.
+    Data is stored in the cache."""
     data = pd.read_csv(file)
+    data = remove_and_rename(data, 'Distance.1', 'Distance')
+    data = remove_and_rename(data, 'Elapsed Time.1', 'Elapsed Time')
     if set(minimum_columns_from_excel_extract).issubset(data.columns):
         for col in full_columns_from_excel_extract:
             if col not in data.columns:
@@ -59,7 +73,6 @@ def load_data(file, units):
         data['Moving Time (hours)'] = round((data['Moving Time (hours)']) / 60,2)
         data['Ratio of Move to Total Time'] = data['Moving Time (hours)'] / data['Elapsed Time (hours)']
         # Fill in NaN values with 0 in the elevation columns.
-        # data[elevation_columns] = data[elevation_columns].fillna(0)
         # Handling the different unit types to convert the distance, speed and elevation columns to the correct values using conversion factors defined on this script.
         if units[0] == "km":
             data['Distance'] = round((data['Distance'])/1000,2)
@@ -71,34 +84,21 @@ def load_data(file, units):
             data[elevation_columns] = data[elevation_columns].apply(lambda x: x * metre_foot_conv).round(2)
         data['Elapsed Time (hours)'] = round((data['Elapsed Time (hours)']) / 60,2)
         data['Moving Time (hours)'] = round((data['Moving Time (hours)']) / 60,2)
-        # Drop any rows that have a NaN value in the time, distance or average speed columns.        
-        # data = data.dropna(subset=['Elapsed Time (hours)', 'Moving Time (hours)', 'Distance', 'Average Speed'])
-
-        
-
         data = data[final_order_of_columns_for_table_display]
         return data
     else:
         st.markdown('''**:blue[Error reading .csv extract. Please ensure it has the correct column names and allowable values. If issue persists, contact details in side menu.]**''')
         sys.exit()
 
-def filter_dataframe(df: pd.DataFrame, units) -> pd.DataFrame:
+
+def filter_dataframe(df, units):
     """
     Adds a UI on top of a dataframe to let viewers filter columns
-
-    Args:
-        df (pd.DataFrame): Original dataframe
-
-    Returns:
-        pd.DataFrame: Filtered dataframe
     """
     modify = st.checkbox("Filter your activities?")
-
     if not modify:
         return df
-
     df = df.copy()
-
     # Try to convert datetimes into a standard format (datetime, no timezone)
     for col in df.columns:
         if is_object_dtype(df[col]):
@@ -109,9 +109,7 @@ def filter_dataframe(df: pd.DataFrame, units) -> pd.DataFrame:
 
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
-
     modification_container = st.container()
-
     with modification_container:
         to_filter_columns = st.multiselect("Filter activities on:", df.columns)
         for column in to_filter_columns:
@@ -155,10 +153,12 @@ def filter_dataframe(df: pd.DataFrame, units) -> pd.DataFrame:
                 )
                 if user_text_input:
                     df = df[df[column].str.contains(user_text_input)]
-
     return df
 
+
 def slider_filter(message,df):
+    """Creates a slider between a min and max value.
+    Returns a filtered df, number of days on the slider and the minimum selected date."""
     min_value = min(df['Activity Date'].dt.date)
     max_value = max(df['Activity Date'].dt.date)
     if min_value < max_value:
@@ -178,6 +178,7 @@ def slider_filter(message,df):
         
 
 def format_hours(hours):
+    """Format an int to become a string with an hour and min section."""
     hours_int = int(hours)
     minutes = int((hours - hours_int) * 60)
     minutes = round(minutes, 2)
@@ -185,6 +186,7 @@ def format_hours(hours):
 
 
 def format_metric_values(df, merged_df, activity_type, metric, units):
+    """Some string manipulation to create the format for overall and change metrics."""
     formatted_value = "{:,.2f} ".format(df.at[df[df['Activity Type'] == activity_type].index[0], metric])
     formatted_change = "{:.2f}%".format(merged_df.at[merged_df[merged_df['Activity Type'] == activity_type].index[0], metric])
     formatted_value = formatted_value + units
@@ -192,6 +194,7 @@ def format_metric_values(df, merged_df, activity_type, metric, units):
 
 
 def create_metrics(df, merged_df, activity_type, first_column, second_column, third_column, four_column, units):
+    """Creates the metrics on the dashboard with 4 columns and a metric for each."""
     random_int = random.randint(2, 100)
     col1= first_column
     col2 = second_column
@@ -215,6 +218,7 @@ def create_metrics(df, merged_df, activity_type, first_column, second_column, th
 
 
 def create_bar_chart(df, y_axis, units):
+    """Creates a bar chart with a dynamic y_axis value"""
     df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
     if y_axis == 'Distance':
         y= alt.Y(f'{y_axis}:Q', title = f'{y_axis} ({units[0]})')
@@ -238,10 +242,11 @@ def create_bar_chart(df, y_axis, units):
 
 
 def create_scatter_graph(df, units):
-                     df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
-                     bind_checkbox = alt.binding_checkbox(name='Scale point size by elevation gain? ')
-                     param_checkbox = alt.param(bind=bind_checkbox)
-                     chart = alt.Chart(df).mark_point().encode(
+                    """Creates a scatter graph of distance and time"""
+                    df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
+                    bind_checkbox = alt.binding_checkbox(name='Scale point size by elevation gain? ')
+                    param_checkbox = alt.param(bind=bind_checkbox)
+                    chart = alt.Chart(df).mark_point().encode(
                         x= alt.X('Distance:Q', title = f'Distance ({units[0]})'),
                         y='Moving Time (hours):Q',
                         color=alt.Color('Activity Type:N',legend=None, sort= allowable_activities).scale(domain=allowable_activities, range=colours_of_activities),
@@ -257,10 +262,10 @@ def create_scatter_graph(df, units):
                         size=alt.condition(param_checkbox,
                         'Elevation Gain:Q',
                         alt.value(25), legend=None
-                     )).add_params(
-                     param_checkbox
-                     ).interactive()
-                     return chart
+                    )).add_params(
+                    param_checkbox
+                    ).interactive()
+                    return chart
 
 
 
@@ -299,6 +304,7 @@ def create_average_speed_line_chart(df, units):
 
 
 def create_mark_bar_weighted_average(df, units):
+                """Creates a horizontal bar chart for each activity split by each period of the day."""
                 chart = alt.Chart(df).mark_bar().encode(
                         x= alt.X('Weighted Avg Speed:Q', title = f'Weighted Average Speed ({units[2]})'),
                         y= alt.Y('Period of Day:N', sort=periods_of_day, title=None),
@@ -311,8 +317,8 @@ def create_mark_bar_weighted_average(df, units):
                 return chart
 
 
-# Define a function to categorise the periods of the day
 def categorise_period(hour):
+       """Categorise the periods of the day"""
        if 0 <= hour < 5:
         return 'Night'
        elif 5 <= hour < 11:
