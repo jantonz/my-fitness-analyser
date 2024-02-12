@@ -233,7 +233,8 @@ def create_bar_chart(df, y_axis, units, selection_global):
                    alt.Tooltip('Elapsed Time (hours):Q', title='Number of Activities'),
                    alt.Tooltip('Moving Time:N'),
                    alt.Tooltip('Distance:Q', format=',.2f', title = f'Distance ({units[0]})'),
-                   alt.Tooltip('Elevation Gain:Q', format=',.2f', title = f'Elevation Gain ({units[1]})')]).properties(width=800, height=600).transform_filter(selection_global).interactive()
+                   alt.Tooltip('Elevation Gain:Q', format=',.2f', title = f'Elevation Gain ({units[1]})')]
+                   ).properties().transform_filter(selection_global).interactive()
     return chart
 
 
@@ -257,7 +258,7 @@ def create_scatter_graph(df, units, selection_global):
                         size=alt.condition(param_checkbox,
                         'Elevation Gain:Q',
                         alt.value(25), legend=None
-                     )).properties(width=800, height=600).add_params(
+                     )).properties().add_params(
                      param_checkbox
                      ).transform_filter(selection_global).interactive()
                      return chart
@@ -294,7 +295,7 @@ def create_average_speed_line_chart(df, units, selection_global):
                     tooltip=[alt.Tooltip('Date:T'),
                             alt.Tooltip('Activity Type:N'),
                             alt.Tooltip('Average Speed:Q', format=',.4f', title = f'Average Speed ({units[2]})')]
-                ).properties(width=800, height=600).transform_filter(selection_global).interactive()
+                ).properties().transform_filter(selection_global).interactive()
                 return chart
 
 
@@ -308,7 +309,7 @@ def create_mark_bar_weighted_average(df, units):
                         tooltip=[alt.Tooltip('Period of Day:N'),
                                 alt.Tooltip('Activity Type:N'),
                                 alt.Tooltip('Weighted Avg Speed:Q', format=',.4f', title = f'Weighted Avg Speed ({units[2]})')]
-                        ).properties(width=75, height=650).interactive()
+                        ).properties().interactive()
                 return chart
 
 

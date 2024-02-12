@@ -97,13 +97,14 @@ if __name__ == '__main__':
             caption_text = "Totals and Percentage Changes"
             m_c.st.subheader(caption_text)
             for i, activity_type in enumerate(list(totals_df['Activity Type'].unique()), start=1):
-                m_c.st.subheader(f"{activity_type}")
-                if i == 1 or i == 3:
-                    m_c.create_metrics(totals_df, merged_df, activity_type, (i*i), (i*i)+1, (i*i)+2, (i*i)+3, units)
-                    # st.write("---")
-                if i == 2 or i == 4:
-                    m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
-                    # st.write("---")
+                with m_c.st.container():
+                    m_c.st.subheader(f"{activity_type}")
+                    if i == 1 or i == 3:
+                        m_c.create_metrics(totals_df, merged_df, activity_type, (i*i), (i*i)+1, (i*i)+2, (i*i)+3, units)
+                        # st.write("---")
+                    if i == 2 or i == 4:
+                        m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
+                        # st.write("---")
             
             caption_text = "⬆️⬇️ Percentage changes calculated between the selected date range and an equivalent duration preceding [" + str(number_of_days_on_slider) + " days between  " + str(cutoff_date) + " & " +  str(min_date_on_slider) + "]. A nan value means no previous data for that activity type."
             m_c.st.info(caption_text)
@@ -122,20 +123,22 @@ if __name__ == '__main__':
             m_c.st.subheader("Weekly breakdown by:")            
             tab1, tab2, tab3, tab4 = m_c.st.tabs(["Moving Time", "Distance", "Number of Activites", "Elevation Gain"])
             with tab1:
-                moving_time_area_graph = m_c.create_bar_chart(weekly_df, 'Moving Time (hours)', units, selection_global)
-                m_c.st.altair_chart(activity_selector & moving_time_area_graph)
-                m_c.st.caption("__The accumulated moving time for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                with m_c.st.container():
+                    moving_time_area_graph = m_c.create_bar_chart(weekly_df, 'Moving Time (hours)', units, selection_global)
+                    m_c.st.altair_chart(activity_selector & moving_time_area_graph, use_container_width=True)
+                    m_c.st.caption("__The accumulated moving time for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
             with tab2:
-                distance_area_graph = m_c.create_bar_chart(weekly_df, 'Distance', units, selection_global)
-                m_c.st.altair_chart((activity_selector & distance_area_graph))
-                m_c.st.caption("__The accumulated distance for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                with m_c.st.container():
+                    distance_area_graph = m_c.create_bar_chart(weekly_df, 'Distance', units, selection_global)
+                    m_c.st.altair_chart((activity_selector & distance_area_graph), use_container_width=True)
+                    m_c.st.caption("__The accumulated distance for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
             with tab3:
                 elevation_area_graph = m_c.create_bar_chart(weekly_df, 'Elapsed Time (hours)', units, selection_global)
-                m_c.st.altair_chart(activity_selector & elevation_area_graph, use_container_width=False)
+                m_c.st.altair_chart(activity_selector & elevation_area_graph, use_container_width=True)
                 m_c.st.caption("__The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
             with tab4:
                 elevation_area_graph = m_c.create_bar_chart(weekly_df, 'Elevation Gain', units, selection_global)
-                m_c.st.altair_chart(activity_selector & elevation_area_graph, use_container_width=False)
+                m_c.st.altair_chart(activity_selector & elevation_area_graph, use_container_width=True)
                 m_c.st.caption("__The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
 
         with col2:
