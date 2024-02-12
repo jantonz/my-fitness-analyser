@@ -27,7 +27,7 @@ if __name__ == '__main__':
         m_c.st.caption("Many fitness tracking providers enable users to download their activity data.")
         m_c.st.caption("This dashboard only needs an Excel .csv file containing a list of your activities with the specified column names. __Ensure that the column names match exactly.__")
         m_c.st.caption("__Mandatory columns__")
-        m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "Run", "Ride", "Hike", "Walk", "Swim"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
+        m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "__Run__", "__Ride__", "__Hike__", "__Walk__", "__Swim__"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
         m_c.st.caption("__Optional columns__")
         m_c.st.caption("""__Activity Name__, __Activity Description__, __Elevation Loss__, __Elevation Low__ and __Elevation High__ [all elevations in meters]""")
         m_c.st.caption("""Any additional columns present in your file will be automatically removed.""")
