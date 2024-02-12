@@ -214,7 +214,7 @@ def create_metrics(df, merged_df, activity_type, first_column, second_column, th
 
 
 
-def create_bar_chart(df, y_axis, units, selection_global):
+def create_bar_chart(df, y_axis, units):
     df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
     if y_axis == 'Distance':
         y= alt.Y(f'{y_axis}:Q', title = f'{y_axis} ({units[0]})')
@@ -233,12 +233,11 @@ def create_bar_chart(df, y_axis, units, selection_global):
                    alt.Tooltip('Elapsed Time (hours):Q', title='Number of Activities'),
                    alt.Tooltip('Moving Time:N'),
                    alt.Tooltip('Distance:Q', format=',.2f', title = f'Distance ({units[0]})'),
-                   alt.Tooltip('Elevation Gain:Q', format=',.2f', title = f'Elevation Gain ({units[1]})')]
-                   ).properties().transform_filter(selection_global).interactive()
+                   alt.Tooltip('Elevation Gain:Q', format=',.2f', title = f'Elevation Gain ({units[1]})')]).interactive()
     return chart
 
 
-def create_scatter_graph(df, units, selection_global):
+def create_scatter_graph(df, units):
                      df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
                      bind_checkbox = alt.binding_checkbox(name='Scale point size by elevation gain? ')
                      param_checkbox = alt.param(bind=bind_checkbox)
@@ -258,14 +257,14 @@ def create_scatter_graph(df, units, selection_global):
                         size=alt.condition(param_checkbox,
                         'Elevation Gain:Q',
                         alt.value(25), legend=None
-                     )).properties().add_params(
+                     )).add_params(
                      param_checkbox
-                     ).transform_filter(selection_global).interactive()
+                     ).interactive()
                      return chart
 
 
 
-def create_average_speed_line_chart(df, units, selection_global):
+def create_average_speed_line_chart(df, units):
                 start_date = df['Activity Date'].dt.date.min()
                 end_date = df['Activity Date'].dt.date.max()
                 date_range_df = pd.DataFrame({
@@ -287,7 +286,6 @@ def create_average_speed_line_chart(df, units, selection_global):
                 date_activity_df = pd.DataFrame(date_activity_combinations, columns=['Date', 'Activity Type'])
                 merged_df = pd.merge(date_activity_df, df_copy, on=['Date', 'Activity Type'], how='left')
                 merged_df['Average Speed'] = merged_df.groupby('Activity Type')['Average Speed'].transform(lambda x: x.expanding().mean())
-                merged_df.to_csv("te.csv")
                 chart = alt.Chart(merged_df).mark_line().encode(
                     x='Date:T',
                     y= alt.Y('Average Speed:Q', title = f'Average Speed ({units[2]})'),
@@ -295,21 +293,21 @@ def create_average_speed_line_chart(df, units, selection_global):
                     tooltip=[alt.Tooltip('Date:T'),
                             alt.Tooltip('Activity Type:N'),
                             alt.Tooltip('Average Speed:Q', format=',.4f', title = f'Average Speed ({units[2]})')]
-                ).properties().transform_filter(selection_global).interactive()
+                ).interactive()
                 return chart
 
 
 
 def create_mark_bar_weighted_average(df, units):
                 chart = alt.Chart(df).mark_bar().encode(
-                        x= alt.X('Period of Day:N', sort=periods_of_day, title=None),
-                        y= alt.Y('Weighted Avg Speed:Q', title = f'Weighted Average Speed ({units[2]})'),
+                        x= alt.X('Weighted Avg Speed:Q', title = f'Weighted Average Speed ({units[2]})'),
+                        y= alt.Y('Period of Day:N', sort=periods_of_day, title=None),
                         color=alt.Color('Period of Day:N',legend=None).scale(domain=periods_of_day, range=colours_of_periods_of_day),
-                        column= alt.Column('Activity Type:N', sort=allowable_activities),
+                        row= alt.Row('Activity Type:N', sort=allowable_activities),
                         tooltip=[alt.Tooltip('Period of Day:N'),
                                 alt.Tooltip('Activity Type:N'),
                                 alt.Tooltip('Weighted Avg Speed:Q', format=',.4f', title = f'Weighted Avg Speed ({units[2]})')]
-                        ).properties().interactive()
+                        ).interactive()
                 return chart
 
 
@@ -347,7 +345,6 @@ def categorise_period(hour):
                 # date_activity_combinations = list(m_c.product(date_range_df['Date'], activity_types))
                 # date_activity_df = m_c.pd.DataFrame(date_activity_combinations, columns=['Date', 'Activity Type'])
                 # merged_df = m_c.pd.merge(date_activity_df, weighted_avg_speed_df, on=['Date', 'Activity Type'], how='left')
-                # merged_df.to_csv("checker.csv")
 
                 # def calculate_weighted_avg(df):
                 #     dict_of_dataframes = {}
@@ -375,5 +372,4 @@ def categorise_period(hour):
 
                 # test = calculate_weighted_avg(merged_df)
                 # average_speed_line_chart = m_c.create_line_chart(test, units, selection_global)
-                # test.to_csv("test.csv")
                 # m_c.st.altair_chart(activity_selector & average_speed_line_chart, use_container_width=True)
