@@ -7,7 +7,6 @@ m_c.st.set_page_config(
     , layout='wide'
     )
 
-
 if __name__ == '__main__': 
     with m_c.st.container():
 
@@ -41,7 +40,7 @@ if __name__ == '__main__':
         data_url = m_c.base64.b64encode(contents).decode("utf-8")
         file_.close()
         m_c.st.markdown(
-            f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" style="width: 900px; height: 500px;">',
+            f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
             unsafe_allow_html=True,
         )
         m_c.st.stop()
