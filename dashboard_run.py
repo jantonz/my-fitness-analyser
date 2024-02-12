@@ -190,5 +190,6 @@ if __name__ == '__main__':
                         column_config={
                             "Activity ID": m_c.st.column_config.NumberColumn(format="%d")
                         })
-    m_c.st.caption("Users are advised that they are solely responsible for their utilisation of this dashboard. The creator of the dashboard bears no responsibility for the accuracy, interpretation or consequences of the data presented. It is imperative for users to exercise discretion and validate information independently before making any decisions based on the dashboard's content.")        
+    m_c.st.write("---")
+    m_c.st.caption("_Users are advised that they are solely responsible for their utilisation of this dashboard. The creator of the dashboard bears no responsibility for the accuracy, interpretation or consequences of the data presented. It is imperative for users to exercise discretion and validate information independently before making any decisions based on the dashboard's content._")        
     
