@@ -11,11 +11,11 @@ with open('style.css') as f:
    m_c.st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 if __name__ == '__main__': 
+    with m_c.st.container():
 
-    m_c.st.header("█▀ █▀█ █▀█ █▀█ ▀█▀   █▀ ▀█▀ ▄▀█ ▀█▀ █▀")
-    m_c.st.header("▄█ █▀▀ █▄█ █▀▄ ░█░   ▄█ ░█░ █▀█ ░█░ ▄█")
+        m_c.st.header("🅐🅣🅗🅛🅔🅣🅔🅘🅠")
 
-    m_c.st.subheader('''An Interactive view of your fitness data\nPrototype v0.1''')
+        m_c.st.subheader('''An Interactive view of your fitness data\nPrototype v0.1''')
 
     with m_c.st.sidebar:        
         m_c.st.header("How to upload your data")
