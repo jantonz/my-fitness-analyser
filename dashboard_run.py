@@ -113,7 +113,7 @@ if __name__ == '__main__':
                     m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
         activity_types_as_list = list(slider_filtered_df['Activity Type'].unique())
         activity_selection = m_c.st.multiselect(
-            "Select activities to display on charts below",
+            "Select activity types to display on charts below:",
             options=activity_types_as_list,
             default = activity_types_as_list
         )
