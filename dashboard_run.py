@@ -3,7 +3,7 @@ import datetime as dt
 
 m_c.st.set_page_config(
     page_title="AthleteIQ", 
-    page_icon="🚀" 
+    page_icon="🏆" 
     , layout='wide'
     )
 
