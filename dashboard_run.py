@@ -58,16 +58,14 @@ if __name__ == '__main__':
     if filtered_df is None:
         m_c.st.stop()
     elif filtered_df.empty:
-        m_c.st.warning("No data to display. Ensure your csv file isn't blank and adjust filters on the side menu.")
+        m_c.st.error("No data to display. Ensure your csv file isn't blank and adjust filters on the side menu.", icon="🚨")
+        # m_c.st.warning("")
         m_c.st.stop()
     else:
         # Create the layout
         slider_filtered_data = m_c.slider_filter('Slide to filter the starting and ending dates of activities.',filtered_df)
         slider_filtered_df = slider_filtered_data[0]
         number_of_days_on_slider = slider_filtered_data[1]
-        if number_of_days_on_slider == 0:
-                   m_c.st.error("Adjust filters on the side menu or the slider above to show at least two days worth of activities.", icon="🚨")
-                   m_c.st.stop()
         min_date_on_slider = slider_filtered_data[2]
         cutoff_date = min_date_on_slider - dt.timedelta(days=number_of_days_on_slider)
         filtered_df_to_create_perc_difference = filtered_df[(filtered_df['Activity Date'].dt.date >= cutoff_date) & (filtered_df['Activity Date'].dt.date < min_date_on_slider)]    
@@ -119,6 +117,9 @@ if __name__ == '__main__':
         )
 
         slider_filtered_df = slider_filtered_df[slider_filtered_df['Activity Type'].isin(activity_selection)]
+        if slider_filtered_df.empty:
+            m_c.st.error("No data to display. Adjust filters.", icon="🚨")
+            m_c.st.stop()
         data_aggregation = slider_filtered_df.copy()
         data_aggregation.set_index('Activity Date', inplace=True)
         # Create dataframe with a weekly aggregation for the area graphs
@@ -132,19 +133,19 @@ if __name__ == '__main__':
             with tab1:
                 moving_time_area_graph = m_c.create_bar_chart(weekly_df, 'Moving Time (hours)', units)
                 m_c.st.altair_chart(moving_time_area_graph, use_container_width=True)
-                m_c.st.caption("__The accumulated moving time for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                m_c.st.caption("The accumulated moving time for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.")
             with tab2:
                 distance_area_graph = m_c.create_bar_chart(weekly_df, 'Distance', units)
                 m_c.st.altair_chart(distance_area_graph, use_container_width=True)
-                m_c.st.caption("__The accumulated distance for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                m_c.st.caption("The accumulated distance for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.")
             with tab3:
                 elevation_area_graph = m_c.create_bar_chart(weekly_df, 'Elapsed Time (hours)', units)
                 m_c.st.altair_chart(elevation_area_graph, use_container_width=True)
-                m_c.st.caption("__The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                m_c.st.caption("The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.")
             with tab4:
                 elevation_area_graph = m_c.create_bar_chart(weekly_df, 'Elevation Gain', units)
                 m_c.st.altair_chart(elevation_area_graph, use_container_width=True)
-                m_c.st.caption("__The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.__")
+                m_c.st.caption("The accumulated elevation gain for each activity throughout the week (from Monday to Sunday) is summarised and visualised in a bar chart.")
 
         with col2:
             m_c.st.subheader("Relationship between:")
@@ -156,7 +157,7 @@ if __name__ == '__main__':
             with tab2:
                 average_speed_line_chart = m_c.create_average_speed_line_chart(slider_filtered_df, units)
                 m_c.st.altair_chart(average_speed_line_chart, use_container_width=True)
-                m_c.st.caption("__This is a simple calculation of average speed [activity distance divided by activity moving time] displayed as a rolling average. It is not equivalent to your pace.__")
+                m_c.st.caption("This is a simple calculation of average speed [activity distance divided by activity moving time] displayed as a rolling average. It is not equivalent to your pace.")
 
             with tab3:
                 slider_filtered_df['Hour'] = slider_filtered_df['Activity Date'].dt.hour
