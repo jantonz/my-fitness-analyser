@@ -115,7 +115,6 @@ if __name__ == '__main__':
             options=activity_types_as_list,
             default = activity_types_as_list
         )
-
         slider_filtered_df = slider_filtered_df[slider_filtered_df['Activity Type'].isin(activity_selection)]
         if slider_filtered_df.empty:
             m_c.st.error("No data to display. Adjust filters.", icon="🚨")
