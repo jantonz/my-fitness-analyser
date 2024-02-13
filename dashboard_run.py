@@ -25,7 +25,7 @@ if __name__ == '__main__':
         m_c.st.caption("__Mandatory columns__")
         m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "_Run_", "_Ride_", "_Hike_", "_Walk_", "_Swim_"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
         m_c.st.caption("__Optional columns__")
-        m_c.st.caption("""__Activity Name__, __Activity Description__, __Elevation Loss__, __Elevation Low__ and __Elevation High__ [all elevations in meters].""")
+        m_c.st.caption("""__Activity ID__, __Activity Name__, __Activity Description__, __Elevation Loss__, __Elevation Low__ and __Elevation High__ [all elevations in meters].""")
         m_c.st.caption("""Any additional columns present in your file will be automatically removed.""")
 
         m_c.st.caption(" Select your desired unit of measurement (don\'t worry you can change it later), drop the file below and enjoy!")
