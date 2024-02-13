@@ -1,3 +1,5 @@
+## Import Modules
+
 import streamlit as st
 # Use the warnings module to supress DeprecationWarning around using GroupBy.apply... This will be fixed, particularly before upgrading Pandas to later editions.
 import warnings
@@ -16,6 +18,7 @@ import random
 from itertools import product
 import base64
 
+## Define constants
 
 # These columns are the minimum required for this script to function.
 minimum_columns_from_excel_extract = ['Activity Date','Activity Type','Elapsed Time', 'Moving Time', 'Distance', 'Elevation Gain']
@@ -47,6 +50,8 @@ metre_mile_conv = 0.0006213712
 final_order_of_columns_for_table_display = ['Activity ID', 'Activity Name', 'Activity Type', 'Activity Date', 'Elapsed Time (hours)', 'Moving Time (hours)', 'Ratio of Move to Total Time', 'Distance', 'Average Speed', 'Elevation Gain', 'Elevation Loss', 'Elevation Low', 'Elevation High']
 
 
+## Create functions
+
 def remove_and_rename(df, target_column_name, column_to_remove):
     """Manages instances where there are duplicate column names"""
     if target_column_name in df.columns:
@@ -55,6 +60,7 @@ def remove_and_rename(df, target_column_name, column_to_remove):
     else:
          pass
     return df
+
 
 @st.cache_data
 def load_data(file, units):
@@ -87,7 +93,6 @@ def load_data(file, units):
             data['Distance'] = round((data['Distance']*metre_mile_conv),2)
             data['Average Speed'] = round(data['Distance'] / (data['Moving Time (hours)']/60),2)
             data[elevation_columns] = data[elevation_columns].apply(lambda x: x * metre_foot_conv).round(2)
-        # Fill in any of the elevation columns that have an NaN or None value with 0. Reasons for having no value ma
         data['Elapsed Time (hours)'] = round((data['Elapsed Time (hours)']) / 60,2)
         data['Moving Time (hours)'] = round((data['Moving Time (hours)']) / 60,2)
         data = data[final_order_of_columns_for_table_display]
@@ -100,9 +105,7 @@ def load_data(file, units):
 
 
 def filter_dataframe(df, units):
-    """
-    Adds a UI on top of a dataframe to let viewers filter columns
-    """
+    """Adds a UI on top of a dataframe to let users filter columns"""
     modify = st.checkbox("Filter your activities?")
     if not modify:
         return df
@@ -170,7 +173,6 @@ def slider_filter(message,df):
     if df.empty:
        st.write("No activity data available.")
        st.stop()
-         
     if min_value < max_value:
         dates_selection = st.slider('%s' % (message),
                                     min_value = min(df['Activity Date'].dt.date),
@@ -181,7 +183,6 @@ def slider_filter(message,df):
         number_of_days_on_slider = time_difference.days
         filtered_df = df[mask]
         return filtered_df, number_of_days_on_slider, dates_selection[0]
-   
     else:
        st.write("Only one day of activity data available. Please increase filter range.")
        return df, 0, max_value
@@ -280,7 +281,6 @@ def create_scatter_graph(df, units):
                     return chart
 
 
-
 def create_average_speed_line_chart(df, units):
                 start_date = df['Activity Date'].dt.date.min()
                 end_date = df['Activity Date'].dt.date.max()
@@ -310,7 +310,6 @@ def create_average_speed_line_chart(df, units):
                             alt.Tooltip('Average Speed:Q', format=',.4f', title = f'Average Speed ({units[2]})')]
                 ).interactive()
                 return chart
-
 
 
 def create_mark_bar_weighted_average(df, units):
