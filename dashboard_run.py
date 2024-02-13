@@ -163,7 +163,9 @@ if __name__ == '__main__':
             with tab3:
                 slider_filtered_df['Hour'] = slider_filtered_df['Activity Date'].dt.hour
                 slider_filtered_df['Period of Day'] = slider_filtered_df['Hour'].apply(m_c.categorise_period)
-                weighted_avg_speed = slider_filtered_df.groupby(['Activity Type', 'Period of Day']).apply(lambda x: (x['Distance'] * x['Average Speed']).sum() / x['Distance'].sum()).reset_index(name='Weighted Avg Speed')
+                # Remove any instances where there is an inf value in either the speed or distance (can occur when tracking activity on a treadmill).
+                filtered_df = slider_filtered_df[~slider_filtered_df[['Average Speed', 'Distance']].isin([m_c.np.inf, -m_c.np.inf]).any(axis=1)]
+                weighted_avg_speed = filtered_df.groupby(['Activity Type', 'Period of Day']).apply(lambda x: (x['Distance'] * x['Average Speed']).sum() / x['Distance'].sum()).reset_index(name='Weighted Avg Speed')
                 chart_weighted_average = m_c.create_mark_bar_weighted_average(weighted_avg_speed, units)
                 m_c.st.altair_chart(chart_weighted_average, use_container_width=True)
                 

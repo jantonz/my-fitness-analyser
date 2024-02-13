@@ -34,7 +34,7 @@ allowable_activities = ['Run','Ride','Swim','Walk']
 
 colours_of_activities = ['Orange', 'Green', 'Purple', 'Blue']
 
-periods_of_day = ['Morning', 'Afternoon', 'Evening', 'Nighttime']
+periods_of_day = ['Morning', 'Afternoon', 'Evening', 'Night']
 
 colours_of_periods_of_day = ['#306182', '#768b99', '#5ebeff', '#9c5959']
 
@@ -71,6 +71,8 @@ def load_data(file, units):
         data['Activity Type'] = data['Activity Type'].replace('Hike', 'Walk')
         data = data[data['Activity Type'].isin(allowable_activities)]
         data['Activity Date'] = pd.to_datetime(data['Activity Date'], format='mixed', dayfirst=True)
+        # Remove any rows that has an NaN in either the Elapsed or Moving Time columns.
+        data = data.dropna(subset=['Elapsed Time (hours)', 'Moving Time (hours)'])
         data['Elapsed Time (hours)'] = round((data['Elapsed Time (hours)']) / 60,2)
         data['Moving Time (hours)'] = round((data['Moving Time (hours)']) / 60,2)
         data['Ratio of Move to Total Time'] = data['Moving Time (hours)'] / data['Elapsed Time (hours)']
