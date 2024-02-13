@@ -20,7 +20,7 @@ if __name__ == '__main__':
         m_c.st.caption("_Optimal performance is achieved on a desktop platform._")
         m_c.st.write("---")
         m_c.st.header("How to upload your data")
-        m_c.st.caption("Many fitness tracking providers enable users to download their activity data.")
+        m_c.st.caption("Many fitness tracking providers and devices enable users to download their activity data.")
         m_c.st.caption("This dashboard only needs an Excel .csv file containing a list of your activities with the specified column names. __Ensure that the column names match exactly.__")
         m_c.st.caption("__Mandatory columns__")
         m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "_Run_", "_Ride_", "_Hike_", "_Walk_", "_Swim_"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
@@ -176,7 +176,6 @@ if __name__ == '__main__':
     with m_c.st.expander("Your activity data as a table"):
             # Drop the hour column for display.
             slider_filtered_df = slider_filtered_df.drop('Hour', axis=1)
-
             # Adding the unit suffixes back in to the column names for display.
             elevation_suffix = f' ({units[1]})'
             distance_suffix = f' ({units[0]})'
@@ -184,7 +183,8 @@ if __name__ == '__main__':
             slider_filtered_df.rename(columns={col: col + elevation_suffix for col in m_c.elevation_columns}, inplace=True)
             slider_filtered_df.rename(columns={col: col + distance_suffix for col in m_c.distance_column}, inplace=True)
             slider_filtered_df.rename(columns={col: col + speed_suffix for col in m_c.speed_column}, inplace=True)
-
+            # Sort by Activity Date and reset index
+            slider_filtered_df = slider_filtered_df.sort_values(by='Activity Date').reset_index(drop=True)
             m_c.st.dataframe(slider_filtered_df,
                         column_config={
                             "Activity ID": m_c.st.column_config.NumberColumn(format="%d")
