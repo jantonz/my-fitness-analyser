@@ -165,6 +165,10 @@ def slider_filter(message,df):
     Returns a filtered df, number of days on the slider and the minimum selected date."""
     min_value = min(df['Activity Date'].dt.date)
     max_value = max(df['Activity Date'].dt.date)
+    if df.empty:
+       st.write("No activity data available.")
+       st.stop()
+         
     if min_value < max_value:
         dates_selection = st.slider('%s' % (message),
                                     min_value = min(df['Activity Date'].dt.date),
@@ -177,7 +181,7 @@ def slider_filter(message,df):
         return filtered_df, number_of_days_on_slider, dates_selection[0]
    
     else:
-       st.write("Only one day of activity data available")
+       st.write("Only one day of activity data available. Please increase filter range.")
        return df, 0, max_value
         
 
@@ -248,6 +252,7 @@ def create_bar_chart(df, y_axis, units):
 def create_scatter_graph(df, units):
                     """Creates a scatter graph of distance and time"""
                     df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
+                    df['Elapsed Time'] = df['Elapsed Time (hours)'].apply(format_hours)
                     bind_checkbox = alt.binding_checkbox(name='Scale point size by elevation gain? ')
                     param_checkbox = alt.param(bind=bind_checkbox)
                     chart = alt.Chart(df).mark_point().encode(
@@ -259,8 +264,9 @@ def create_scatter_graph(df, units):
                                 alt.Tooltip('Activity Type:N'),
                                 alt.Tooltip('Distance:Q', format=',.2f', title = f'Distance ({units[0]})'),
                                 alt.Tooltip('Moving Time:N'),
+                                alt.Tooltip('Elapsed Time:N'),
                                 alt.Tooltip('Ratio of Move to Total Time:Q', format=',.3f'),
-                                alt.Tooltip('Average Speed:Q', format=',.2f', title = f'Distance ({units[2]})'),
+                                alt.Tooltip('Average Speed:Q', format=',.2f', title = f'Average Speed ({units[2]})'),
                                 alt.Tooltip('Elevation Gain:Q', format=',.2f', title = f'Elevation Gain ({units[1]})'),
                                 alt.Tooltip('Elevation High:Q', format=',.2f', title = f'Elevation High ({units[1]})')],
                         size=alt.condition(param_checkbox,

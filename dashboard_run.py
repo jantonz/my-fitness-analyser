@@ -66,7 +66,7 @@ if __name__ == '__main__':
         slider_filtered_df = slider_filtered_data[0]
         number_of_days_on_slider = slider_filtered_data[1]
         if number_of_days_on_slider == 0:
-                   m_c.st.warning("No data to display. Adjust slider to increase date range")
+                   m_c.st.warning("No data to display. Adjust filters on the side menu or the slider above to show at least two days worth of activities.")
                    m_c.st.stop()
         min_date_on_slider = slider_filtered_data[2]
         cutoff_date = min_date_on_slider - dt.timedelta(days=number_of_days_on_slider)
