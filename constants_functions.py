@@ -1,12 +1,14 @@
 import streamlit as st
+# Use the warnings module to supress DeprecationWarning around using GroupBy.apply... This will be fixed, particularly before upgrading Pandas to later editions.
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 import pandas as pd
 import sys
 import numpy as np
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
-    is_numeric_dtype,
-    is_object_dtype,
+    is_numeric_dtype
 )
 import altair as alt
 import datetime as dt
@@ -91,7 +93,7 @@ def load_data(file, units):
         data = data[final_order_of_columns_for_table_display]
         return data
     else:
-        st.markdown('''**:blue[Error reading .csv extract. Please ensure it has the correct column names and allowable values. If issue persists, contact details in side menu.]**''')
+        st.error("Error reading .csv extract. Please ensure it has the correct column names and allowable values. If issue persists, contact details in side menu.", icon="🚨")
         sys.exit()
 
 
@@ -105,12 +107,6 @@ def filter_dataframe(df, units):
     df = df.copy()
     # Try to convert datetimes into a standard format (datetime, no timezone)
     for col in df.columns:
-        if is_object_dtype(df[col]):
-            try:
-                df[col] = pd.to_datetime(df[col])
-            except Exception:
-                pass
-
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
     modification_container = st.container()

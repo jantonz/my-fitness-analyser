@@ -23,7 +23,7 @@ if __name__ == '__main__':
         m_c.st.caption("Many fitness tracking providers enable users to download their activity data.")
         m_c.st.caption("This dashboard only needs an Excel .csv file containing a list of your activities with the specified column names. __Ensure that the column names match exactly.__")
         m_c.st.caption("__Mandatory columns__")
-        m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "__Run__", "__Ride__", "__Hike__", "__Walk__", "__Swim__"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
+        m_c.st.caption("""__Activity Date__ [including timestamp], __Activity Type__ [allowed values "_Run_", "_Ride_", "_Hike_", "_Walk_", "_Swim_"], __Distance__ [in meters], __Elevation Gain__ [in meters], __Elapsed Time__ [in minutes] and __Moving Time__ [in minutes].""")
         m_c.st.caption("__Optional columns__")
         m_c.st.caption("""__Activity Name__, __Activity Description__, __Elevation Loss__, __Elevation Low__ and __Elevation High__ [all elevations in meters].""")
         m_c.st.caption("""Any additional columns present in your file will be automatically removed.""")
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     if filtered_df is None:
         m_c.st.stop()
     elif filtered_df.empty:
-        m_c.st.warning("No data to display. Adjust filters on the side menu.")
+        m_c.st.warning("No data to display. Ensure your csv file isn't blank and adjust filters on the side menu.")
         m_c.st.stop()
     else:
         # Create the layout
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         slider_filtered_df = slider_filtered_data[0]
         number_of_days_on_slider = slider_filtered_data[1]
         if number_of_days_on_slider == 0:
-                   m_c.st.warning("No data to display. Adjust filters on the side menu or the slider above to show at least two days worth of activities.")
+                   m_c.st.error("Adjust filters on the side menu or the slider above to show at least two days worth of activities.", icon="🚨")
                    m_c.st.stop()
         min_date_on_slider = slider_filtered_data[2]
         cutoff_date = min_date_on_slider - dt.timedelta(days=number_of_days_on_slider)
@@ -111,8 +111,6 @@ if __name__ == '__main__':
                     m_c.create_metrics(totals_df, merged_df, activity_type, (i*i), (i*i)+1, (i*i)+2, (i*i)+3, units)
                 if i == 2 or i == 4:
                     m_c.create_metrics(totals_df, merged_df, activity_type, (2*i)+1, (2*i)+2, (2*i)+3, (2*i)+4, units)
-                    # 
-        
         activity_types_as_list = list(slider_filtered_df['Activity Type'].unique())
         activity_selection = m_c.st.multiselect(
             "Select activities to display on charts below",
@@ -168,7 +166,6 @@ if __name__ == '__main__':
                 weighted_avg_speed = filtered_df.groupby(['Activity Type', 'Period of Day']).apply(lambda x: (x['Distance'] * x['Average Speed']).sum() / x['Distance'].sum()).reset_index(name='Weighted Avg Speed')
                 chart_weighted_average = m_c.create_mark_bar_weighted_average(weighted_avg_speed, units)
                 m_c.st.altair_chart(chart_weighted_average, use_container_width=True)
-                
                 m_c.st.caption("Definitions: __Morning__: 5am - 11am, __Afternoon__: 11am - 5pm, __Evening__: 5pm - 10pm, __Night__: 10pm - 5am")
                 m_c.st.caption("The weighted average speed for each activity is computed by multiplying the distance and speed of each activity, summing these products, and then dividing by the total distance across all activities. This metric offers a representation of the overall distance covered. Mathematically this is represented by:")
                 m_c.st.latex(r'''\text{Weighted Average Speed} = \frac{\sum \text{Distance} \times \text{Speed}}{\sum \text{Distance}}​''')
