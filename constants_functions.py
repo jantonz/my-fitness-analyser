@@ -228,8 +228,8 @@ def create_metrics(df, merged_df, activity_type, first_column, second_column, th
 
 
 
-def create_bar_chart(df, y_axis, units):
-    """Creates a bar chart with a dynamic y_axis value"""
+def create_area_chart(df, y_axis, units):
+    """Creates a area chart with a dynamic y_axis value"""
     df['Moving Time'] = df['Moving Time (hours)'].apply(format_hours)
     if y_axis == 'Distance':
         y= alt.Y(f'{y_axis}:Q', title = f'{y_axis} ({units[0]})')
@@ -239,7 +239,7 @@ def create_bar_chart(df, y_axis, units):
          y= alt.Y(f'{y_axis}:Q', title = 'Number of Activities')
     else:
         y = f'{y_axis}:Q'
-    chart = alt.Chart(df).mark_bar(opacity=0.8).encode(
+    chart = alt.Chart(df).mark_area(opacity=0.8).encode(
           x='Activity Date:T',
           y= y,
           color=alt.Color('Activity Type:N', legend=None).scale(domain=allowable_activities, range=colours_of_activities),
