@@ -185,9 +185,9 @@ if __name__ == '__main__':
                 with col3:
                     number_of_days_between_end_date_and_max_date_of_activities = (end_date-max_date_of_activities).days
                     # Predictor 1 is by default set at halfway between the end date of the regression line and the max date of activities
-                    predictor_date_1 = m_c.st.date_input("AND I want to predict my activity values on ", value=end_date- dt.timedelta(days=number_of_days_between_end_date_and_max_date_of_activities/2), max_value=end_date)
+                    predictor_date_1 = m_c.st.date_input("AND I want to predict my activity values on ", value=end_date- dt.timedelta(days=number_of_days_between_end_date_and_max_date_of_activities*0.8), max_value=end_date)
                     # Predictor 2 is by default set at 80% between the end date of the regression line and the max date of activities
-                    predictor_date_2 = m_c.st.date_input("and on ", value=end_date - dt.timedelta(days=round(number_of_days_between_end_date_and_max_date_of_activities*0.8)), max_value=end_date)
+                    predictor_date_2 = m_c.st.date_input("and on ", value=end_date - dt.timedelta(days=round(number_of_days_between_end_date_and_max_date_of_activities*0.2)), max_value=end_date)
                 # Filter the data on the chosen start and end dates using a mask
                 mask = data_for_regression_tab['Activity Date'].dt.date.between(start_date,end_date)
                 slider_filtered_df_regression = data_for_regression_tab[mask]
