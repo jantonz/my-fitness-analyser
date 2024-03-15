@@ -229,7 +229,7 @@ if __name__ == '__main__':
                         m_c.st.altair_chart(combined_chart, use_container_width=True)
                     with col2:
                         m_c.create_columns_for_statistics(slider_filtered_df_regression_without_swim, predicted_values_activity_type, r_squared_values, mae_values, numbers_of_activities, units, 'Cumulative Elevation Gain')              
-                m_c.st.caption("This model __assumes a linear relationship between your completed activities and the future.__ If you changed your training cadence suddenly, this model will loose accuracy. Adjust the configuration of the regression line to begin when you changed your cadence. Similarly, __you want to have a significant number of activities such that predicitions have a reliable basis__ to be found upon and minimise the uncertainty associated with the predictions. Insufficient data can lead to unreliable and potentially misleading predictions.")                                 
+                m_c.st.caption("This model __assumes a linear relationship between your completed activities and the future.__ If you changed your training cadence suddenly, this model will lose accuracy. Adjust the configuration of the regression line to begin when you changed your cadence. Similarly, __you want to have a significant number of activities such that predicitions have a reliable basis__ to be found upon and minimise the uncertainty associated with the predictions. Insufficient data can lead to unreliable and potentially misleading predictions.")                                 
                 m_c.st.write("---")
     with m_c.st.expander("Your activity data as a table"):
             # Drop the hour column for display.
