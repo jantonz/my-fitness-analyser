@@ -488,8 +488,8 @@ def write_statistics_of_regression(activity_type, r_squared_values, mae_values, 
         keys = predicted_values_activity_type[activity_type].keys()
         for key in keys:
             st.write(key, ": ", predicted_values_activity_type[activity_type][key], units)
-        st.caption(f"Number of activities in model: __{numbers_of_activities[activity_type]}__")
-        st.caption(f"When the model predicts {metric}, __it's accurate {r_squared}% of the time.__")
+        st.caption(f"Number of activities in model calculation: __{numbers_of_activities[activity_type]}__")
+        st.caption(f"The model captures about __{r_squared}%__ of the patterns in the data.")
         st.caption(f"On average, the predictions __are off by {mae_values[activity_type]} {units}__ compared to the actual values.")
     except Exception as e:
         pass
