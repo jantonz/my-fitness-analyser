@@ -17,6 +17,9 @@ import datetime as dt
 import random
 from itertools import product
 import base64
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+
 
 ## Define constants
 
@@ -186,7 +189,38 @@ def slider_filter(message,df):
     else:
        st.write("Only one day of activity data available. Please increase filter range.")
        return df, 0, max_value
-        
+    
+
+def generate_date_range(start_date, end_date):
+    date_range = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_range.append(current_date)
+        current_date += dt.timedelta(days=1)
+    return date_range
+
+
+def select_slider_filter(message,df):
+    """Creates a slider between a min date and a fixed max date value. The fixed max date value is the max date of activities on the dataframe.
+    Returns a filtered df, number of days on the slider and the minimum selected date."""
+    min_value = min(df['Activity Date'].dt.date)
+    max_value = max(df['Activity Date'].dt.date)
+    options = generate_date_range(min_value, max_value)
+    if df.empty:
+       st.write("No activity data available.")
+       st.stop()
+    if min_value < max_value:
+        dates_selection = st.select_slider('%s' % (message),
+                                    options =options)
+        mask = df['Activity Date'].dt.date.between(dates_selection,max_value)
+        time_difference = max_value - dates_selection
+        number_of_days_on_slider = time_difference.days
+        filtered_df = df[mask]
+        return filtered_df, number_of_days_on_slider, dates_selection
+    else:
+       st.write("Only one day of activity data available. Please increase filter range.")
+       return df, 0, max_value
+         
 
 def format_hours(hours):
     """Format an int to become a string with an hour and min section."""
@@ -339,6 +373,158 @@ def categorise_period(hour):
        else:
            return 'Night'
        
+
+def create_scatter_graph_and_regression(df, metric, units, predictor_1, predictor_2, end_date):
+    try:
+        if df.empty:
+                st.error("No data to display. Ensure there is at least 2 activities within selected filters.", icon="🚨")
+                st.stop()
+        df['Cumulative Moving Time'] = df['Cumulative Moving Time (hours)'].apply(format_hours)
+        if metric == 'Cumulative Distance':
+            y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[0]})')
+        elif metric == 'Cumulative Elevation Gain':
+            y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[1]})')
+        else:
+            y = alt.Y(f'{metric}:Q', title = f'{metric}')
+        df_altair = alt.Chart(df).mark_circle(color='blue').encode(
+                                x='Activity Date:T',
+                                y= y,
+                                color=alt.Color('Activity Type:N',legend={'orient':'top'}, sort=allowable_activities).scale(domain=allowable_activities, range=colours_of_activities),
+                                tooltip=[alt.Tooltip('Activity Type:N'),
+                                alt.Tooltip('Activity Date:T'),
+                                alt.Tooltip('Cumulative Distance:Q', format=',.0f', title = f'Cumulative Distance ({units[0]})'),
+                                alt.Tooltip('Cumulative Moving Time:N'),
+                                alt.Tooltip('Cumulative Elevation Gain:Q', format=',.0f', title = f'Cumulative Elevation Gain ({units[1]})')]
+                            ).interactive()
+        combined_chart = df_altair
+        r_squared_values = {}
+        mae_values = {}
+        numbers_of_activities = {}
+        predicted_values_activity_type = {}
+        for index, activity_type in enumerate(df['Activity Type'].unique()):
+            if index >0:
+                index += index*15
+            data = df[df['Activity Type'] == activity_type]
+            number_of_activities = len(data)
+            numbers_of_activities[activity_type] = number_of_activities
+            # We do not want to include a regression line if there are less than two activities for an activity type
+            if number_of_activities < 2:
+                break
+            X = data['Activity Date'].astype(np.int64).values.reshape(-1, 1)  # Convert dates to numerical values
+            y = data[metric].values
+            model = LinearRegression()
+            model.fit(X, y)
+            y_pred = model.predict(X)
+            # Calculate R-squared
+            r_squared = r2_score(y, y_pred)
+            r_squared = round(r_squared, 2)
+            r_squared_values[activity_type] = r_squared
+            # Calculate MAE
+            mae = mean_absolute_error(y, y_pred)
+            mae = round(mae, 2)
+            mae_values[activity_type] = mae
+            # Predict metric for future dates
+            first_date = min(data['Activity Date'].dt.date)
+            future_dates = pd.date_range(start=first_date, end=end_date)
+            future_dates_num = np.array(future_dates).astype(np.int64).reshape(-1, 1)
+            predicted = model.predict(future_dates_num)
+            # Add predicted metrics to future dates
+            future_df = pd.DataFrame({'Activity Date': future_dates, f'Predicted {metric}': predicted})
+            future_df['Activity Date'] = future_df['Activity Date'].dt.strftime('%Y-%m-%d')
+            # Convert all data to Altair DataFrames
+            if activity_type == allowable_activities[0]:
+                color_of_trendline = colours_of_activities[0]
+            elif activity_type == allowable_activities[1]:
+                color_of_trendline = colours_of_activities[1]
+            elif activity_type == allowable_activities[2]:
+                color_of_trendline = colours_of_activities[2]
+            elif activity_type == allowable_activities[3]:
+                color_of_trendline = colours_of_activities[3]
+            chart = alt.Chart(future_df).mark_line(color=color_of_trendline, strokeDash=[1, 2]).encode(
+                x='Activity Date:T',
+                y= alt.Y(f'Predicted {metric}:Q', title=''),
+                tooltip=[alt.Tooltip('Activity Date:T'),
+                        alt.Tooltip(f'Predicted {metric}:Q', format=',.0f', title='Predicted Value')]
+            ).interactive()
+            combined_chart = combined_chart + chart
+            list_of_vertical_lines = [predictor_1,predictor_2]
+            predicted_values = {}
+            for vertical_date in list_of_vertical_lines:
+                vertical_line = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date]})).mark_rule(strokeDash=[10, 5], color='red').encode(
+                    x= alt.X('vertical_date:T', title = '')
+                )
+                vertical_date = vertical_date.strftime('%Y-%m-%d')
+                predicted_value = np.round(future_df.loc[future_df['Activity Date'] == vertical_date, f'Predicted {metric}'].iloc[0]).astype(int)
+                predicted_values[vertical_date] = predicted_value
+                label = activity_type + ":\n" + str(predicted_value)
+                value_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': label})).mark_text(dx=0, dy=(index), color='black').encode(
+                    x='vertical_date:T',
+                    text= 'label'
+                )
+                if index == 0:
+                    date_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': [vertical_date]})).mark_text(dx=0, dy=-15, color='black').encode(
+                    x='vertical_date:T',
+                    text='label'
+                    )
+                    combined_chart = combined_chart + vertical_line + date_annotation + value_annotation
+                else:
+                    combined_chart = combined_chart + vertical_line + value_annotation
+            predicted_values_activity_type[activity_type] = predicted_values
+    except Exception as e:
+        st.error("Adjust the configuration so your predictor dates are within the range of the regression line", icon="🚨")
+    return combined_chart, numbers_of_activities, r_squared_values, mae_values, predicted_values_activity_type
+
+
+def write_statistics_of_regression(activity_type, r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric):
+    try:
+        if metric == 'Cumulative Elevation Gain':
+            units = f' {units[1]}'
+        elif metric == 'Cumulative Distance':
+            units = f' {units[0]}'
+        else:
+            units = 'hours'
+        r_squared = r_squared_values[activity_type]*100
+        st.subheader(f"{activity_type}")
+        keys = predicted_values_activity_type[activity_type].keys()
+        for key in keys:
+            st.write(key, ": ", predicted_values_activity_type[activity_type][key], units)
+        st.caption(f"Number of activities in model: __{numbers_of_activities[activity_type]}__")
+        st.caption(f"When the model predicts {metric}, __it's accurate {r_squared}% of the time.__")
+        st.caption(f"On average, the predictions __are off by {mae_values[activity_type]} {units}__ compared to the actual values.")
+    except Exception as e:
+        pass
+
+def create_columns_for_statistics(df, predicted_values_activity_type, r_squared_values, mae_values, numbers_of_activities, units, metric):
+    activity_types = df['Activity Type'].unique()
+    number_of_activity_types = len(activity_types)
+    if number_of_activity_types == 1:
+        write_statistics_of_regression(activity_types[0], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+    elif number_of_activity_types == 2:
+        col1, col2 = st.columns(2)
+        with col1:
+            write_statistics_of_regression(activity_types[0], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col2:
+            write_statistics_of_regression(activity_types[1], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+    elif number_of_activity_types == 3:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            write_statistics_of_regression(activity_types[0], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col2:
+            write_statistics_of_regression(activity_types[1], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col3:
+            write_statistics_of_regression(activity_types[2], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+    elif number_of_activity_types == 4:
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            write_statistics_of_regression(activity_types[0], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col2:
+            write_statistics_of_regression(activity_types[1], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col3:
+            write_statistics_of_regression(activity_types[2], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+        with col4:
+            write_statistics_of_regression(activity_types[3], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
+
+            
 
 # Not used in this release. This code creates a time series of the weighted average speed, however, errors with the cumsum() method proved it to be unusable in its current state.
                 # weighted_avg_speed_df = slider_filtered_df.copy()
