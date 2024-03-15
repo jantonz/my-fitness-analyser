@@ -9,9 +9,7 @@ m_c.st.set_page_config(
 
 if __name__ == '__main__': 
     with m_c.st.container():
-
         m_c.st.header("🅰🆃🅷🅻🅴🆃🅴 🅸🆀")
-
         m_c.st.subheader('''An Interactive View of your Fitness Data''')
     with m_c.st.sidebar:
         m_c.st.write("🌐 [Contact](https://www.linkedin.com/in/matthew-helingoe-55371791/)  |  🚧 [GitHub](https://github.com/shoulda-woulda/fitness_dashboard_app)")
@@ -26,7 +24,6 @@ if __name__ == '__main__':
         m_c.st.caption("__Optional columns__")
         m_c.st.caption("""__Activity ID__, __Activity Name__, __Activity Description__, __Elevation Loss__, __Elevation Low__ and __Elevation High__ [all elevations in meters].""")
         m_c.st.caption("""Any additional columns present in your file will be automatically removed.""")
-
         m_c.st.caption(" Select your desired unit of measurement (don\'t worry you can change it later), drop the file below and enjoy!")
         units = m_c.st.radio("Select units", [('km', 'm', 'kph'), ('mi', 'ft', 'mph')])
         uploaded_file = m_c.st.sidebar.file_uploader("""Upload your activities .csv file""", type=["csv"])
@@ -148,12 +145,10 @@ if __name__ == '__main__':
                 with tab7:
                     scatter_graph = m_c.create_scatter_graph(slider_filtered_df, units)
                     m_c.st.altair_chart(scatter_graph, use_container_width=True)
-
                 with tab8:
                     average_speed_line_chart = m_c.create_average_speed_line_chart(slider_filtered_df, units)
                     m_c.st.altair_chart(average_speed_line_chart, use_container_width=True)
                     m_c.st.caption("This is a simple calculation of average speed [activity distance divided by activity moving time] displayed as a rolling average. It is not equivalent to your pace.")
-
                 with tab9:
                     slider_filtered_df['Hour'] = slider_filtered_df['Activity Date'].dt.hour
                     slider_filtered_df['Period of Day'] = slider_filtered_df['Hour'].apply(m_c.categorise_period)
@@ -189,8 +184,11 @@ if __name__ == '__main__':
                         end_date = m_c.st.date_input("or until this date ", value=start_date + dt.timedelta(days=number),min_value=start_date+ dt.timedelta(days=1))
                 with col3:
                     number_of_days_between_end_date_and_max_date_of_activities = (end_date-max_date_of_activities).days
+                    # Predictor 1 is by default set at halfway between the end date of the regression line and the max date of activities
                     predictor_date_1 = m_c.st.date_input("AND I want to predict my activity values on ", value=end_date- dt.timedelta(days=number_of_days_between_end_date_and_max_date_of_activities/2), max_value=end_date)
-                    predictor_date_2 = m_c.st.date_input("and on ", value=end_date - dt.timedelta(days=1), max_value=end_date)
+                    # Predictor 2 is by default set at 80% between the end date of the regression line and the max date of activities
+                    predictor_date_2 = m_c.st.date_input("and on ", value=end_date - dt.timedelta(days=round(number_of_days_between_end_date_and_max_date_of_activities*0.8)), max_value=end_date)
+                # Filter the data on the chosen start and end dates using a mask
                 mask = data_for_regression_tab['Activity Date'].dt.date.between(start_date,end_date)
                 slider_filtered_df_regression = data_for_regression_tab[mask]
                 slider_filtered_df_regression.reset_index(inplace=True)

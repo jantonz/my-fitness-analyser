@@ -412,7 +412,9 @@ def create_scatter_graph_and_regression(df, metric, units, predictor_1, predicto
                 break
             X = data['Activity Date'].astype(np.int64).values.reshape(-1, 1)  # Convert dates to numerical values
             y = data[metric].values
+            # Initiate linear regression model
             model = LinearRegression()
+            # Train linear regression model
             model.fit(X, y)
             y_pred = model.predict(X)
             # Calculate R-squared
@@ -431,7 +433,7 @@ def create_scatter_graph_and_regression(df, metric, units, predictor_1, predicto
             # Add predicted metrics to future dates
             future_df = pd.DataFrame({'Activity Date': future_dates, f'Predicted {metric}': predicted})
             future_df['Activity Date'] = future_df['Activity Date'].dt.strftime('%Y-%m-%d')
-            # Convert all data to Altair DataFrames
+            # Match activity types with their corresponding colour (for the trendlines)
             if activity_type == allowable_activities[0]:
                 color_of_trendline = colours_of_activities[0]
             elif activity_type == allowable_activities[1]:
@@ -447,6 +449,7 @@ def create_scatter_graph_and_regression(df, metric, units, predictor_1, predicto
                         alt.Tooltip(f'Predicted {metric}:Q', format=',.0f', title='Predicted Value')]
             ).interactive()
             combined_chart = combined_chart + chart
+            # The prediction vertical lines now have to be added to the chart
             list_of_vertical_lines = [predictor_1,predictor_2]
             predicted_values = {}
             for vertical_date in list_of_vertical_lines:
@@ -485,6 +488,7 @@ def write_statistics_of_regression(activity_type, r_squared_values, mae_values, 
             units = 'hours'
         r_squared = r_squared_values[activity_type]*100
         st.subheader(f"{activity_type}")
+        # Predicted values are stored in a nested dict so they need to be unpacked according to the activity type
         keys = predicted_values_activity_type[activity_type].keys()
         for key in keys:
             st.write(key, ": ", predicted_values_activity_type[activity_type][key], units)
@@ -492,11 +496,14 @@ def write_statistics_of_regression(activity_type, r_squared_values, mae_values, 
         st.caption(f"The model captures about __{r_squared}%__ of the patterns in the data.")
         st.caption(f"On average, the predictions __are off by {mae_values[activity_type]} {units}__ compared to the actual values.")
     except Exception as e:
+        # No error message is displayed as the error is handled in the create_scatter_graph_and_regression function that calls this one
         pass
+
 
 def create_columns_for_statistics(df, predicted_values_activity_type, r_squared_values, mae_values, numbers_of_activities, units, metric):
     activity_types = df['Activity Type'].unique()
     number_of_activity_types = len(activity_types)
+    # Depending on the number of activity types being calculated, the statistics are displayed in one of the columns. There is a bit of duplication here that I would like to remove
     if number_of_activity_types == 1:
         write_statistics_of_regression(activity_types[0], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
     elif number_of_activity_types == 2:
