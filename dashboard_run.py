@@ -173,7 +173,7 @@ if __name__ == '__main__':
                 # The following code creates the dates for the predicition model.
                 with col1:
                     start_date = m_c.st.date_input("To calculate my predicted values use activity data beginning from ", value=m_c.dt.date(2024, 1, 1))
-                    m_c.st.info("Select a date when you began consistently training. At least 2 days worth of activity data are required to calculate a prediction.")
+                    m_c.st.info("Select a date when you began consistently training. At least 2 days of activity data is required to calculate a prediction.")
                     time_difference = max_date_of_activities - start_date
                     number_of_days_on_slider = time_difference.days + 1
                 with col2:
