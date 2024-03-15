@@ -6,6 +6,6 @@ __Purpose:__ To inform users of their progress, insights into their performance 
 
 Find the app here: https://athleteiq.streamlit.app/
 
-__A sample datafile is included on this repo if you want to try the dashboard out!__
+__A sample datafile is included on this repo if you want to try the dashboard out! [activities.csv]__
 
 Acknowledgements to Streamlit by Snowflake for creating such a great framework: https://streamlit.io/
