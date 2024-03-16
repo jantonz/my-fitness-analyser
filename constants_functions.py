@@ -374,105 +374,114 @@ def categorise_period(hour):
            return 'Night'
        
 
-def create_scatter_graph_and_regression(df, metric, units, predictor_1, predictor_2, end_date):
-    try:
-        if df.empty:
+def create_regression_scatter_graph(df, metric, units):
+    if df.empty:
                 st.error("No data to display. Ensure there is at least 2 activities within selected filters.", icon="🚨")
                 st.stop()
-        df['Cumulative Moving Time'] = df['Cumulative Moving Time (hours)'].apply(format_hours)
-        if metric == 'Cumulative Distance':
-            y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[0]})')
-        elif metric == 'Cumulative Elevation Gain':
-            y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[1]})')
+    df['Cumulative Moving Time'] = df['Cumulative Moving Time (hours)'].apply(format_hours)
+    if metric == 'Cumulative Distance':
+        y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[0]})')
+    elif metric == 'Cumulative Elevation Gain':
+        y= alt.Y(f'{metric}:Q', title = f'{metric} ({units[1]})')
+    else:
+        y = alt.Y(f'{metric}:Q', title = f'{metric}')
+    scatter_graph = alt.Chart(df).mark_circle(color='blue').encode(
+                            x='Activity Date:T',
+                            y= y,
+                            color=alt.Color('Activity Type:N',legend={'orient':'top'}, sort=allowable_activities).scale(domain=allowable_activities, range=colours_of_activities),
+                            tooltip=[alt.Tooltip('Activity Type:N'),
+                            alt.Tooltip('Activity Date:T'),
+                            alt.Tooltip('Cumulative Distance:Q', format=',.0f', title = f'Cumulative Distance ({units[0]})'),
+                            alt.Tooltip('Cumulative Moving Time:N'),
+                            alt.Tooltip('Cumulative Elevation Gain:Q', format=',.0f', title = f'Cumulative Elevation Gain ({units[1]})')]
+                        ).interactive()
+    return scatter_graph
+
+
+def create_regression(df, combined_chart, metric, activity_type, index, predictor_1, predictor_2, end_date, r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type):
+    if index >0:
+        index += index*15
+    data = df[df['Activity Type'] == activity_type]
+    number_of_activities = len(data)
+    numbers_of_activities[activity_type] = number_of_activities
+    # We do not want to include a regression line if there are less than two activities for an activity type
+    if number_of_activities < 2:
+        return
+    X = data['Activity Date'].astype(np.int64).values.reshape(-1, 1)  # Convert dates to numerical values
+    y = data[metric].values
+    # Initiate linear regression model
+    model = LinearRegression()
+    # Train linear regression model
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    # Calculate R-squared
+    r_squared = r2_score(y, y_pred)
+    r_squared = round(r_squared, 2)
+    r_squared_values[activity_type] = r_squared
+    # Calculate MAE
+    mae = mean_absolute_error(y, y_pred)
+    mae = round(mae, 2)
+    mae_values[activity_type] = mae
+    # Predict metric for future dates
+    first_date = min(data['Activity Date'].dt.date)
+    future_dates = pd.date_range(start=first_date, end=end_date)
+    future_dates_num = np.array(future_dates).astype(np.int64).reshape(-1, 1)
+    predicted = model.predict(future_dates_num)
+    # Add predicted metrics to future dates
+    future_df = pd.DataFrame({'Activity Date': future_dates, f'Predicted {metric}': predicted})
+    future_df['Activity Date'] = future_df['Activity Date'].dt.strftime('%Y-%m-%d')
+    # Match activity types with their corresponding colour (for the trendlines)
+    if activity_type == allowable_activities[0]:
+        color_of_trendline = colours_of_activities[0]
+    elif activity_type == allowable_activities[1]:
+        color_of_trendline = colours_of_activities[1]
+    elif activity_type == allowable_activities[2]:
+        color_of_trendline = colours_of_activities[2]
+    elif activity_type == allowable_activities[3]:
+        color_of_trendline = colours_of_activities[3]
+    chart = alt.Chart(future_df).mark_line(color=color_of_trendline, strokeDash=[1, 2]).encode(
+        x='Activity Date:T',
+        y= alt.Y(f'Predicted {metric}:Q', title=''),
+        tooltip=[alt.Tooltip('Activity Date:T'),
+                alt.Tooltip(f'Predicted {metric}:Q', format=',.0f', title='Predicted Value')]
+    ).interactive()
+    combined_chart = combined_chart + chart
+    # The prediction vertical lines now have to be added to the chart
+    list_of_vertical_lines = [predictor_1,predictor_2]
+    predicted_values = {}
+    for vertical_date in list_of_vertical_lines:
+        vertical_line = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date]})).mark_rule(strokeDash=[10, 5], color='red').encode(
+            x= alt.X('vertical_date:T', title = '')
+        )
+        vertical_date = vertical_date.strftime('%Y-%m-%d')
+        predicted_value = np.round(future_df.loc[future_df['Activity Date'] == vertical_date, f'Predicted {metric}'].iloc[0]).astype(int)
+        predicted_values[vertical_date] = predicted_value
+        label = activity_type + ":\n" + str(predicted_value)
+        value_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': label})).mark_text(dx=0, dy=(index), color='black').encode(
+            x='vertical_date:T',
+            text= 'label'
+        )
+        if index == 0:
+            date_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': [vertical_date]})).mark_text(dx=0, dy=-15, color='black').encode(
+            x='vertical_date:T',
+            text='label'
+            )
+            combined_chart = combined_chart + vertical_line + date_annotation + value_annotation
         else:
-            y = alt.Y(f'{metric}:Q', title = f'{metric}')
-        df_altair = alt.Chart(df).mark_circle(color='blue').encode(
-                                x='Activity Date:T',
-                                y= y,
-                                color=alt.Color('Activity Type:N',legend={'orient':'top'}, sort=allowable_activities).scale(domain=allowable_activities, range=colours_of_activities),
-                                tooltip=[alt.Tooltip('Activity Type:N'),
-                                alt.Tooltip('Activity Date:T'),
-                                alt.Tooltip('Cumulative Distance:Q', format=',.0f', title = f'Cumulative Distance ({units[0]})'),
-                                alt.Tooltip('Cumulative Moving Time:N'),
-                                alt.Tooltip('Cumulative Elevation Gain:Q', format=',.0f', title = f'Cumulative Elevation Gain ({units[1]})')]
-                            ).interactive()
-        combined_chart = df_altair
+            combined_chart = combined_chart + vertical_line + value_annotation
+    predicted_values_activity_type[activity_type] = predicted_values
+    return combined_chart
+    
+
+def create_scatter_graph_and_regression(df, metric, units, predictor_1, predictor_2, end_date):
+    try:
+        combined_chart = create_regression_scatter_graph(df, metric, units)
         r_squared_values = {}
         mae_values = {}
         numbers_of_activities = {}
         predicted_values_activity_type = {}
         for index, activity_type in enumerate(df['Activity Type'].unique()):
-            if index >0:
-                index += index*15
-            data = df[df['Activity Type'] == activity_type]
-            number_of_activities = len(data)
-            numbers_of_activities[activity_type] = number_of_activities
-            # We do not want to include a regression line if there are less than two activities for an activity type
-            if number_of_activities < 2:
-                break
-            X = data['Activity Date'].astype(np.int64).values.reshape(-1, 1)  # Convert dates to numerical values
-            y = data[metric].values
-            # Initiate linear regression model
-            model = LinearRegression()
-            # Train linear regression model
-            model.fit(X, y)
-            y_pred = model.predict(X)
-            # Calculate R-squared
-            r_squared = r2_score(y, y_pred)
-            r_squared = round(r_squared, 2)
-            r_squared_values[activity_type] = r_squared
-            # Calculate MAE
-            mae = mean_absolute_error(y, y_pred)
-            mae = round(mae, 2)
-            mae_values[activity_type] = mae
-            # Predict metric for future dates
-            first_date = min(data['Activity Date'].dt.date)
-            future_dates = pd.date_range(start=first_date, end=end_date)
-            future_dates_num = np.array(future_dates).astype(np.int64).reshape(-1, 1)
-            predicted = model.predict(future_dates_num)
-            # Add predicted metrics to future dates
-            future_df = pd.DataFrame({'Activity Date': future_dates, f'Predicted {metric}': predicted})
-            future_df['Activity Date'] = future_df['Activity Date'].dt.strftime('%Y-%m-%d')
-            # Match activity types with their corresponding colour (for the trendlines)
-            if activity_type == allowable_activities[0]:
-                color_of_trendline = colours_of_activities[0]
-            elif activity_type == allowable_activities[1]:
-                color_of_trendline = colours_of_activities[1]
-            elif activity_type == allowable_activities[2]:
-                color_of_trendline = colours_of_activities[2]
-            elif activity_type == allowable_activities[3]:
-                color_of_trendline = colours_of_activities[3]
-            chart = alt.Chart(future_df).mark_line(color=color_of_trendline, strokeDash=[1, 2]).encode(
-                x='Activity Date:T',
-                y= alt.Y(f'Predicted {metric}:Q', title=''),
-                tooltip=[alt.Tooltip('Activity Date:T'),
-                        alt.Tooltip(f'Predicted {metric}:Q', format=',.0f', title='Predicted Value')]
-            ).interactive()
-            combined_chart = combined_chart + chart
-            # The prediction vertical lines now have to be added to the chart
-            list_of_vertical_lines = [predictor_1,predictor_2]
-            predicted_values = {}
-            for vertical_date in list_of_vertical_lines:
-                vertical_line = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date]})).mark_rule(strokeDash=[10, 5], color='red').encode(
-                    x= alt.X('vertical_date:T', title = '')
-                )
-                vertical_date = vertical_date.strftime('%Y-%m-%d')
-                predicted_value = np.round(future_df.loc[future_df['Activity Date'] == vertical_date, f'Predicted {metric}'].iloc[0]).astype(int)
-                predicted_values[vertical_date] = predicted_value
-                label = activity_type + ":\n" + str(predicted_value)
-                value_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': label})).mark_text(dx=0, dy=(index), color='black').encode(
-                    x='vertical_date:T',
-                    text= 'label'
-                )
-                if index == 0:
-                    date_annotation = alt.Chart(pd.DataFrame({'vertical_date': [vertical_date], 'label': [vertical_date]})).mark_text(dx=0, dy=-15, color='black').encode(
-                    x='vertical_date:T',
-                    text='label'
-                    )
-                    combined_chart = combined_chart + vertical_line + date_annotation + value_annotation
-                else:
-                    combined_chart = combined_chart + vertical_line + value_annotation
-            predicted_values_activity_type[activity_type] = predicted_values
+            combined_chart = create_regression(df, combined_chart, metric, activity_type, index, predictor_1, predictor_2, end_date, r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type)
     except Exception as e:
         st.error("Adjust the configuration so your predictor dates are within the range of the regression line", icon="🚨")
     return combined_chart, numbers_of_activities, r_squared_values, mae_values, predicted_values_activity_type
@@ -532,7 +541,6 @@ def create_columns_for_statistics(df, predicted_values_activity_type, r_squared_
             write_statistics_of_regression(activity_types[3], r_squared_values, mae_values, numbers_of_activities, predicted_values_activity_type, units, metric)
 
             
-
 # Not used in this release. This code creates a time series of the weighted average speed, however, errors with the cumsum() method proved it to be unusable in its current state.
                 # weighted_avg_speed_df = slider_filtered_df.copy()
                 # weighted_avg_speed_df = weighted_avg_speed_df.rename(columns={'Activity Date': 'Date'})
