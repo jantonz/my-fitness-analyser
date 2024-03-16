@@ -18,7 +18,7 @@ import random
 from itertools import product
 import base64
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.metrics import r2_score, mean_absolute_error
 
 
 ## Define constants
