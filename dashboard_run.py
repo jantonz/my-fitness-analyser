@@ -30,14 +30,11 @@ if __name__ == '__main__':
     if uploaded_file is None:
         m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
         m_c.st.write("---")
-        file_ = open("misc/dashboard-demo.gif", "rb")
-        contents = file_.read()
-        data_url = m_c.base64.b64encode(contents).decode("utf-8")
-        file_.close()
-        m_c.st.markdown(
-            f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
-            unsafe_allow_html=True,
-        )
+        m_c.st.image('misc/totals.jpg', caption='See an overview of your activity metrics.')
+        m_c.st.write("---")
+        m_c.st.image('misc/graphs.jpg', caption='View interactive graphs to see trends and relationships between your activities.')
+        m_c.st.write("---")
+        m_c.st.image('misc/predcitor.jpg', caption='Use a machine learning regression model to predict your future activity metrics.')
         m_c.st.stop()
     else:
             df = m_c.load_data(uploaded_file,units)
