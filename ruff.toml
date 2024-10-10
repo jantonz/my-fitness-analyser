@@ -1,0 +1,36 @@
+line-length = 100
+
+exclude = ["docs", "notebooks"]
+force-exclude = true
+
+cache-dir = ".ruff_cache"
+target-version = "py312"
+
+[lint]
+dummy-variable-rgx = "^test_(.*)"
+select = [
+    "F", "E", "W", "ARG", "C90", "I", "N", "D", "UP", "YTT", "ANN", "S", "BLE", "FBT", "B", "A",
+    "COM", "C40", "DTZ", "T10", "DJ", "EXE", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT",
+    "Q", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY",
+    "NPY", "RUF"
+]
+ignore = [
+    "ANN101", "ANN102", "B008", "D203", "D205", "D207", "D208", "D209", "D213", "FBT001", "FBT003",
+    "PLE1205", "TRY003", "TRY300", "FBT002", "D107", "B023", "EXE002", "DTZ005", "ANN401", "PT001",
+    "ANN002", "ANN003", "TID252",  "COM812"
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S101", "D401", "PT005", "PLR2004", "S105"]
+
+[lint.pylint]
+max-args = 10
+
+[lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[lint.pep8-naming]
+ignore-names = ["i", "j", "k", "ex", "Run", "_", "df", "fp", "id", "x", "y"]
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
