@@ -44,10 +44,10 @@ if __name__ == "__main__":
             " Select your desired unit of measurement (don't worry you can change it later), drop the file below and enjoy!"
         )
         units = m_c.st.radio("Select units", [("km", "m", "kph"), ("mi", "ft", "mph")])
+        password = m_c.st.text_input("Password for the zip file.")
         uploaded_file = m_c.st.sidebar.file_uploader(
-            """Upload your activities .csv file""", type=["csv"]
+            """Upload your Mi Fitness .zip file""", type=["zip"]
         )
-    uploaded_file = ""
     if uploaded_file is None:
         m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
         m_c.st.write("---")
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         try:
             df = m_c.load_data(uploaded_file)
         except:
-            df_pre, df_weight = load_data()
+            df_pre, df_weight = load_data(uploaded_file, password)
             csv_buffer = StringIO()
             df_pre.to_csv(csv_buffer, index=False)
             csv_buffer.seek(0)

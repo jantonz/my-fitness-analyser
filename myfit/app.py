@@ -86,26 +86,27 @@ def transform_df_sport(df_sport):
     return df_transformed
 
 
+import zipfile
+
+uploaded_file = "20241010_2339475430_MiFitness_ams1_data_copy.zip"
+
+
+def handle_file_upload(uploaded_file, password):
+    sport_filename = f"{uploaded_file.name[:29]}_hlth_center_sport_record.csv"
+    fitness_filename = f"{uploaded_file.name[:29]}_hlth_center_fitness_data.csv"
+    pwd = password.encode()
+    zfile = zipfile.ZipFile(uploaded_file)
+    df_sport = pd.read_csv(zfile.open(sport_filename, mode="r", pwd=pwd))
+    df_weight = pd.read_csv(zfile.open(fitness_filename, mode="r", pwd=pwd))
+    return df_sport, df_weight
+
+
 @st.cache_data
-def load_data():
+def load_data(uploaded_file, password):
     # Read the data
-    DATADIR = WORKDIR.parent / "data"
-    sport_filename = "20240920_2339475430_MiFitness_hlth_center_sport_record.csv"
-    fitness_filename = "20240920_2339475430_MiFitness_hlth_center_fitness_data.csv"
-    df_sport = pd.read_csv(DATADIR / sport_filename)
-    colnames = pd.read_csv(DATADIR / fitness_filename, nrows=1).columns
-    col_list = ["heart_rate", "steps", "calories", "weight"]
-    with (DATADIR / fitness_filename).open("r") as f:
-        text = "\n".join([line for line in f if any(col in line for col in col_list)])
-    df_weight = pd.read_csv(StringIO(text), names=colnames)
+    df_sport, df_weight = handle_file_upload(uploaded_file, password)
 
     df_weight["Time"] = pd.to_datetime(df_weight["Time"], unit="s")
-    # df_weight["weight"] = df_weight["Value"].apply(lambda x: json.loads(x).get("weight", 0))
-    # df_weight["bmi"] = df_weight["Value"].apply(lambda x: json.loads(x).get("bmi", 0))
-    # df_weight["body_fat_rate"] = df_weight["Value"].apply(
-    #     lambda x: json.loads(x).get("body_fat_rate", 0)
-    # )
-
     for col in ["bpm", "steps", "calories", "weight", "bmi", "body_fat_rate"]:
         df_weight[col] = df_weight["Value"].apply(lambda x: json.loads(x).get(col, pd.NA))
 
