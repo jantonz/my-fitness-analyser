@@ -52,17 +52,17 @@ if __name__ == "__main__":
         m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
         m_c.st.write("---")
         m_c.st.caption("__See an overview of your activity metrics.__")
-        m_c.st.image("misc/totals.jpg")
+        m_c.st.image("myfit/misc/totals.jpg")
         m_c.st.write("---")
         m_c.st.caption(
             "__View interactive graphs to see trends and relationships between your activities.__"
         )
-        m_c.st.image("misc/graphs.jpg")
+        m_c.st.image("myfit/misc/graphs.jpg")
         m_c.st.write("---")
         m_c.st.caption(
             "__Use a machine learning regression model to predict your future activity metrics.__"
         )
-        m_c.st.image("misc/predictor.jpg")
+        m_c.st.image("myfit/misc/predictor.jpg")
         m_c.st.stop()
     else:
         try:
