@@ -9,6 +9,7 @@ import constants_functions as m_c
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 
 
 def transform_df_sport(df_sport):
@@ -92,10 +93,36 @@ def handle_file_upload(uploaded_file, password):
     return df_sport, df_weight
 
 
-@st.cache_data
-def load_data(uploaded_file, password):
-    # Read the data
+def upload_uploaded_file_to_gsheets(uploaded_file, password):
+    # Read dataset the first time
     df_sport, df_weight = handle_file_upload(uploaded_file, password)
+
+    # Upload dataset to GSheets
+    conn = st.connection("gsheets", type=GSheetsConnection)
+
+    df_sport = conn.update(
+        worksheet="sport",
+        data=df_sport,
+    )
+    df_weight = conn.update(
+        worksheet="weight",
+        data=df_weight,
+    )
+    return df_sport, df_weight
+
+
+def load_data_from_gsheets():
+    # Download dataset from GSheets
+    conn = st.connection("gsheets", type=GSheetsConnection)
+
+    df_sport = conn.read(worksheet="sport")
+    df_weight = conn.read(worksheet="weight")
+    return df_sport, df_weight
+
+
+@st.cache_data
+def load_data(df_sport, df_weight):
+    # Read the data
 
     df_weight["Time"] = pd.to_datetime(df_weight["Time"], unit="s")
     for col in ["bpm", "steps", "calories", "weight", "bmi", "body_fat_rate"]:

@@ -3,7 +3,13 @@ from io import StringIO
 
 import constants_functions as m_c
 import streamlit as st
-from app import load_data, plot_other, plot_weight
+from app import (
+    load_data,
+    load_data_from_gsheets,
+    plot_other,
+    plot_weight,
+    upload_uploaded_file_to_gsheets,
+)
 
 m_c.st.set_page_config(
     page_title="AthleteIQ", page_icon="🏆", layout="wide", initial_sidebar_state="collapsed"
@@ -13,6 +19,7 @@ if __name__ == "__main__":
     with m_c.st.container():
         m_c.st.header("🅰🆃🅷🅻🅴🆃🅴 🅸🆀")
         m_c.st.subheader("""An Interactive View of your Fitness Data""")
+
     with m_c.st.sidebar:
         m_c.st.write(
             "🌐 [Contact](https://www.linkedin.com/in/matthew-helingoe-55371791/)  |  🚧 [GitHub](https://github.com/shoulda-woulda/fitness_dashboard_app)"
@@ -48,7 +55,9 @@ if __name__ == "__main__":
         uploaded_file = m_c.st.sidebar.file_uploader(
             """Upload your Mi Fitness .zip file""", type=["zip"]
         )
-    if uploaded_file is None:
+    try:
+        df_sport, df_weight = load_data_from_gsheets()
+    except:
         m_c.st.info("⬅️ Get started and upload your own data on the side menu.")
         m_c.st.write("---")
         m_c.st.caption("__See an overview of your activity metrics.__")
@@ -64,32 +73,30 @@ if __name__ == "__main__":
         )
         m_c.st.image("myfit/misc/predictor.jpg")
         m_c.st.stop()
-    else:
-        try:
-            df = m_c.load_data(uploaded_file)
-        except:
-            df_pre, df_weight = load_data(uploaded_file, password)
-            csv_buffer = StringIO()
-            df_pre.to_csv(csv_buffer, index=False)
-            csv_buffer.seek(0)
-            uploaded_file = csv_buffer
-            df = m_c.load_data(uploaded_file)
-        with m_c.st.sidebar:
-            filtered_df = m_c.filter_dataframe(df, units)
-            m_c.st.header("How to use the dashboard")
-            m_c.st.caption(
-                "You can filter your activity data above or use the options on the dashboard."
-            )
-            m_c.st.caption(
-                "The large figures represent a breakdown of your total activity metrics based on the applied filters."
-            )
-            m_c.st.caption("Use the dropdown to filter the graphs by activity type.")
-            m_c.st.caption(
-                "__Desktop only__ The graphs are interactive, allowing you to zoom in and out. Hover over data points for additional details. Double-click to reset the graph to its previous state."
-            )
-            m_c.st.caption(
-                "You can view and download your data in the table at the bottom of the page."
-            )
+    if uploaded_file:
+        df_sport, df_weight = upload_uploaded_file_to_gsheets(uploaded_file, password)
+    df_pre, df_weight = load_data(df_sport, df_weight)
+    csv_buffer = StringIO()
+    df_pre.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+    uploaded_file = csv_buffer
+    df = m_c.load_data(uploaded_file)
+    with m_c.st.sidebar:
+        filtered_df = m_c.filter_dataframe(df, units)
+        m_c.st.header("How to use the dashboard")
+        m_c.st.caption(
+            "You can filter your activity data above or use the options on the dashboard."
+        )
+        m_c.st.caption(
+            "The large figures represent a breakdown of your total activity metrics based on the applied filters."
+        )
+        m_c.st.caption("Use the dropdown to filter the graphs by activity type.")
+        m_c.st.caption(
+            "__Desktop only__ The graphs are interactive, allowing you to zoom in and out. Hover over data points for additional details. Double-click to reset the graph to its previous state."
+        )
+        m_c.st.caption(
+            "You can view and download your data in the table at the bottom of the page."
+        )
     if filtered_df is None:
         m_c.st.stop()
     elif filtered_df.empty:

@@ -33,6 +33,7 @@ plotly = "^5.24.1"
 streamlit = "^1.38.0"
 statsmodels = "^0.14.3"
 scikit-learn = "^1.5.2"
+st-gsheets-connection = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = {extras = ["jupyter"], version = "24.4.0"}
